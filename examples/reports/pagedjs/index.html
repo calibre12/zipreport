@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PagedJS Example Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <!--<script src="https://s3.amazonaws.com/pagedmedia/pagedjs/dist/paged.polyfill.js"></script>-->
+    <script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+    <script type="text/javascript" src="js/toc.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script src="js/radarchart.js"></script>
+
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            counter-reset: figureNumber;
+        }
+
+        /* Figure Counter */
+
+        figcaption {
+            counter-increment: figureNumber;
+        }
+
+        figcaption::before {
+            content: counter(figureNumber);
+        }
+
+        blockquote {
+            font-size: 10pt;
+            text-color: #999;
+            text-align: center;
+        }
+
+        blockquote.ref {
+            counter-increment: figureNumber;
+        }
+
+        blockquote.ref::before {
+            content: "Figure " counter(figureNumber) ": ";
+        }
+
+
+        @page {
+            size: A4 portrait;
+            margin: 10mm 15mm;
+            bleed: 6mm;
+        }
+
+        /* h2 is copied the var title */
+        h2 {
+            string-set: title content(text);
+        }
+
+        @page {
+
+        @page :left {
+            margin-left: 35mm;
+            margin-right: 15mm;
+        }
+
+        @bottom-right
+        {
+            content: "page " counter(page)
+        ;
+        }
+
+        @top-right
+        {
+            content: string(title)
+        ;
+            text-transform: uppercase
+        ;
+        }
+        }
+
+        @page cover {
+            margin: 0;
+            background: url("images/cover.jpg");
+            background-position: bottom;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-color: #ddd;
+            @top-left {
+                content: none;
+            }
+            @top-center {
+                content: none;
+            }
+            @top-right {
+                content: none;
+            }
+            @bottom-left {
+                content: none;
+            }
+            @bottom-center {
+                content: none;
+            }
+            @bottom-right {
+                content: none;
+            }
+        }
+
+        @page :blank {
+            @top-left-corner {
+                content: none;
+            }
+            @top-left {
+                content: none;
+            }
+            @top-center {
+                content: none;
+            }
+            @top-right {
+                content: none;
+            }
+            @top-right-corner {
+                content: none;
+            }
+            @right-top {
+                content: none;
+            }
+            @right-middle {
+                content: none;
+            }
+            @right-bottom {
+                content: none;
+            }
+            @bottom-right-corner {
+                content: none;
+            }
+            @bottom-right {
+                content: none;
+            }
+            @bottom-center {
+                content: none;
+            }
+            @bottom-left {
+                content: none;
+            }
+            @bottom-left-corner {
+                content: none;
+            }
+            @left-bottom {
+                content: none;
+            }
+            @left-middle {
+                content: none;
+            }
+            @left-top {
+                content: none;
+            }
+        }
+
+        .chapter {
+            break-before: page;
+        }
+
+        .chapter p {
+            text-align: justify;
+        }
+
+        .chapter h3 {
+            padding-top: 2em;
+        }
+
+
+        /* cover */
+        #cover h1 {
+            text-transform: uppercase;
+            text-align: right;
+            color: #555;
+            border-bottom: 1px dashed #555;
+        }
+
+        #cover {
+            page: cover;
+        }
+
+        .cover-annotation {
+            float: right;
+            width: 50%;
+            text-align: right;
+            color: #777;
+        }
+
+        /* TOC */
+        #toc li a::after {
+            content: target-counter(attr(href), page);
+            float: right;
+        }
+
+        /* set the style for the list numbering to none */
+        #list-toc-generated {
+            list-style: none;
+        }
+
+        #list-toc-generated .toc-element a::after {
+            content: " p. " target-counter(attr(href), page);
+            float: right;
+        }
+
+        #list-toc-generated .toc-element-level-1 {
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        #list-toc-generated .toc-element-level-2 {
+            margin-left: 25px;
+        }
+
+
+        /* counters */
+
+        #list-toc-generated {
+            counter-reset: counterTocLevel1;
+        }
+
+        #list-toc-generated .toc-element-level-1 {
+            counter-increment: counterTocLevel1;
+            counter-reset: counterTocLevel2;
+        }
+
+        #list-toc-generated .toc-element-level-1::before {
+            content: counter(counterTocLevel1) ". ";
+            padding-right: 5px;
+        }
+
+        #list-toc-generated .toc-element-level-2 {
+            /*counter-increment: counterTocLevel2; */
+        }
+
+        #list-toc-generated .toc-element-level-2::before {
+            /*content: counter(counterTocLevel1) ". " counter(counterTocLevel2) ". ";*/
+            padding-right: 5px;
+        }
+
+
+        /* hack for leaders */
+
+        #list-toc-generated {
+            overflow-x: hidden;
+        }
+
+        /* fake leading */
+        #list-toc-generated .toc-element::after {
+            content: ".............................................." ".............................................." ".............................................." "........";
+            float: left;
+            width: 0;
+            padding-left: 5px;
+            letter-spacing: 2px;
+        }
+
+        #list-toc-generated .toc-element {
+            display: flex;
+        }
+
+        #list-toc-generated .toc-element a::after {
+            position: absolute;
+            right: 0;
+            background-color: white;
+            padding-left: 6px;
+        }
+
+        #list-toc-generated .toc-element a {
+            right: 0;
+            color: #000;
+            text-decoration: none;
+        }
+
+        #list-toc-generated .toc-element a:visited {
+            color: #000;
+        }
+
+        /* Table */
+        table {
+            border-spacing: 1;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        table * {
+            position: relative;
+        }
+
+        table td, table th {
+            padding-left: 8px;
+        }
+
+        table thead tr {
+            height: 40px;
+            background: #FFED86;
+            font-size: 16px;
+        }
+
+        table tbody tr {
+            height: 40px;
+            border-bottom: 1px solid #E3F1D5;
+        }
+
+        table tbody tr:last-child {
+            border: 0;
+        }
+
+        table td, table th {
+            text-align: left;
+        }
+
+        table td.l, table th.l {
+            text-align: right;
+        }
+
+        table td.c, table th.c {
+            text-align: center;
+        }
+
+        table td.r, table th.r {
+            text-align: center;
+        }
+
+
+        /* containers */
+        .align-right {
+            float: right;
+            text-align: center;
+        }
+
+        .align-left {
+            float: right;
+            text-align: center;
+        }
+
+        .full-width {
+            margin: auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        .clear:after {
+            clear: both;
+            display: table;
+            content: "";
+        }
+
+        .half {
+            width: 50%;
+            float: left;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+        /* Override page handler to build ToC */
+
+        class handlers extends Paged.Handler {
+            constructor(chunker, polisher, caller) {
+                super(chunker, polisher, caller);
+            }
+
+            afterPreview(pages) {
+                // signal end of composition
+                document.dispatchEvent(new Event('zpt-view-ready'))
+            }
+
+            beforeParsed(content) {
+                createToc({
+                    content: content,
+                    tocElement: '#toc',
+                    titleElements: ['h2', 'h3']
+                });
+            }
+
+        }
+
+        Paged.registerHandlers(handlers);
+    </script>
+</head>
+<body>
+
+<section id="cover">
+    <h1>Pretty cool sample report</h1>
+    <p><span class="cover-annotation">
+        Date: {{ date }}<br/>
+        Author: Someone
+        </span></p>
+</section>
+
+<section class="chapter toc">
+    <h1>Index</h1>
+    <div id="toc"></div>
+</section>
+
+
+<section class="chapter">
+    <h2 id="chapter-1" class="title-element">Chapter I</h2>
+    <h3 id="part1" class="title-element">Introduction</h3>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fringilla, sem id semper lacinia, lectus enim
+        viverra orci, sit amet consequat eros turpis ut enim. Proin ullamcorper elementum odio vel condimentum. Mauris
+        nisl ex, faucibus at dui vitae, rhoncus laoreet metus. Mauris tempus nec enim sit amet imperdiet. Quisque
+        fringilla erat pretium lacinia consectetur. Etiam consequat purus nisi, viverra porta nisl semper at. Phasellus
+        eget justo fringilla, faucibus augue vel, ultrices nisl. Pellentesque consequat nibh massa, eu molestie massa
+        dignissim eget. Donec vel feugiat lorem. Maecenas velit velit, euismod a viverra sit amet, vehicula sit amet
+        enim. Suspendisse potenti. Sed faucibus facilisis posuere. Sed egestas justo id orci laoreet suscipit. Fusce in
+        tincidunt neque, eget dapibus sem. Phasellus elementum ante massa, sed dapibus lorem rutrum eget. Pellentesque
+        molestie leo odio.
+    </p>
+    <p>
+        Etiam porta, lacus nec iaculis porttitor, purus arcu pretium libero, eget aliquet justo erat non enim. Curabitur
+        molestie ex eu nunc malesuada consectetur. Vestibulum faucibus ut justo vel varius. Vivamus sed ante eget urna
+        consequat vehicula. Curabitur id massa porttitor, viverra nisi ac, fermentum nibh. Vestibulum vehicula dapibus
+        tempus. Mauris lectus eros, ornare sed sem vitae, pulvinar suscipit eros. Aenean rutrum aliquam neque, in
+        dapibus nisi condimentum a. Morbi ut arcu in ante gravida ultricies.
+    </p>
+
+
+    <h3 id="part2" class="title-element">Tabular Data</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>CODE</th>
+            <th>STOCK</th>
+            <th>CAP</th>
+            <th>INCH</th>
+            <th>BOX TYPE</th>
+        </tr>
+        <thead>
+        <tbody>
+        <tr>
+            <td>CES-9000</td>
+            <td>50mt</td>
+            <td>9mm</td>
+            <td>1/2"</td>
+            <td>Kangal / Coil</td>
+        </tr>
+        <tr>
+            <td>CES-9000</td>
+            <td>50mt</td>
+            <td>9mm</td>
+            <td>1/2"</td>
+            <td>Kangal / Coil</td>
+        </tr>
+        <tr>
+            <td>CES-9000</td>
+            <td>50mt</td>
+            <td>9mm</td>
+            <td>1/2"</td>
+            <td>Kangal / Coil</td>
+        </tr>
+        <tr>
+            <td>CES-9000</td>
+            <td>50mt</td>
+            <td>9mm</td>
+            <td>1/2"</td>
+            <td>Kangal / Coil</td>
+        </tr>
+        </tbody>
+        <table/>
+
+        <blockquote class="ref">Some Table</blockquote>
+
+        <h3 id="part3" class="title-element">Plotting data</h3>
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fringilla, sem id semper lacinia, lectus enim
+            viverra orci, sit amet consequat eros turpis ut enim. Proin ullamcorper elementum odio vel condimentum.
+            Mauris nisl ex, faucibus at dui vitae, rhoncus laoreet metus. Mauris tempus nec enim sit amet imperdiet.
+            Quisque fringilla erat pretium lacinia consectetur. Etiam consequat purus nisi, viverra porta nisl semper
+            at. Phasellus eget justo fringilla, faucibus augue vel, ultrices nisl. Pellentesque consequat nibh massa, eu
+            molestie massa dignissim eget. Donec vel feugiat lorem. Maecenas velit velit, euismod a viverra sit amet,
+            vehicula sit amet enim. Suspendisse potenti. Sed faucibus facilisis posuere. Sed egestas justo id orci
+            laoreet suscipit. Fusce in tincidunt neque, eget dapibus sem. Phasellus elementum ante massa, sed dapibus
+            lorem rutrum eget. Pellentesque molestie leo odio.
+        </p>
+        <div class="chap1-radar-chart"></div>
+        <blockquote class="ref">Radar plot stolen from the web</blockquote>
+</section>
+
+
+<section class="chapter">
+    <h2 id="chapter-2" class="title-element">Chapter II</h2>
+
+    <h3 id="chap2-1" class="title-element">Goofing around</h3>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fringilla, sem id semper lacinia, lectus enim
+        viverra orci, sit amet consequat eros turpis ut enim. Proin ullamcorper elementum odio vel condimentum. Mauris
+        nisl ex, faucibus at dui vitae, rhoncus laoreet metus. Mauris tempus nec enim sit amet imperdiet. Quisque
+        fringilla erat pretium lacinia consectetur. Etiam consequat purus nisi, viverra porta nisl semper at. Phasellus
+        eget justo fringilla, faucibus augue vel, ultrices nisl. Pellentesque consequat nibh massa, eu molestie massa
+        dignissim eget. Donec vel feugiat lorem. Maecenas velit velit, euismod a viverra sit amet, vehicula sit amet
+        enim. Suspendisse potenti. Sed faucibus facilisis posuere. Sed egestas justo id orci laoreet suscipit.
+    <div class="align-right">
+        <img src="https://via.placeholder.com/150"/>
+        <blockquote class="ref">This could be your face</blockquote>
+    </div>
+    Fusce in tincidunt neque, eget dapibus sem. Phasellus elementum ante massa, sed dapibus lorem rutrum eget.
+    Pellentesque molestie leo odio.
+    Etiam porta, lacus nec iaculis porttitor, purus arcu pretium libero, eget aliquet justo erat non enim. Curabitur
+    molestie ex eu nunc malesuada consectetur. Vestibulum faucibus ut justo vel varius. Vivamus sed ante eget urna
+    consequat vehicula. Curabitur id massa porttitor, viverra nisi ac, fermentum nibh. Vestibulum vehicula dapibus
+    tempus. Mauris lectus eros, ornare sed sem vitae, pulvinar suscipit eros. Aenean rutrum aliquam neque, in dapibus
+    nisi condimentum a. Morbi ut arcu in ante gravida ultricies.
+    </p>
+    <p>
+        Etiam porta, lacus nec iaculis porttitor, purus arcu pretium libero, eget aliquet justo erat non enim. Curabitur
+        molestie ex eu nunc malesuada consectetur. Vestibulum faucibus ut justo vel varius. Vivamus sed ante eget urna
+        consequat vehicula. Curabitur id massa porttitor, viverra nisi ac, fermentum nibh. Vestibulum vehicula dapibus
+        tempus. Mauris lectus eros, ornare sed sem vitae, pulvinar suscipit eros. Aenean rutrum aliquam neque, in
+        dapibus nisi condimentum a. Morbi ut arcu in ante gravida ultricies.
+    </p>
+
+</section>
+
+
+<section class="chapter">
+    <h2 id="chapter-3" class="title-element">Chapter III</h2>
+
+    <h3 id="chap3-1" class="title-element">Plotting graphics generated server-side</h3>
+    <p>
+        By using the the provided extended filters, it is possible to easily embed server-side generated graphics by
+        using callbacks. When the template is rendered, the images
+        are generated automatically and embedded into the report, before passing to the pdf generator.
+    </p>
+    <div class="full-width clear">
+        <div class="half">
+            {{ gen_graphics_1|png(graphics_1, "graphics 1", "250","250") }}
+            <blockquote class="ref">matplotlib example</blockquote>
+        </div>
+        <div class="half">
+            {{ gen_graphics_2|png(graphics_2, "graphics 2", "250","250") }}
+            <blockquote class="ref">matplotlib 3d example</blockquote>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        /* from http://bl.ocks.org/nbremer/21746a9668ffdf6d8242 */
+        /* Radar chart design created by Nadieh Bremer - VisualCinnamon.com */
+
+        //////////////////////////////////////////////////////////////
+        //////////////////////// Set-Up //////////////////////////////
+        //////////////////////////////////////////////////////////////
+
+        var margin = {top: 100, right: 100, bottom: 100, left: 100},
+            width = Math.min(700, window.innerWidth - 10) - margin.left - margin.right,
+            height = Math.min(width, window.innerHeight - margin.top - margin.bottom - 20);
+
+        //////////////////////////////////////////////////////////////
+        ////////////////////////// Data //////////////////////////////
+        //////////////////////////////////////////////////////////////
+
+        var data = [
+            [//iPhone
+                {axis: "Battery Life", value: 0.22},
+                {axis: "Brand", value: 0.28},
+                {axis: "Contract Cost", value: 0.29},
+                {axis: "Design And Quality", value: 0.17},
+                {axis: "Have Internet Connectivity", value: 0.22},
+                {axis: "Large Screen", value: 0.02},
+                {axis: "Price Of Device", value: 0.21},
+                {axis: "To Be A Smartphone", value: 0.50}
+            ], [//Samsung
+                {axis: "Battery Life", value: 0.27},
+                {axis: "Brand", value: 0.16},
+                {axis: "Contract Cost", value: 0.35},
+                {axis: "Design And Quality", value: 0.13},
+                {axis: "Have Internet Connectivity", value: 0.20},
+                {axis: "Large Screen", value: 0.13},
+                {axis: "Price Of Device", value: 0.35},
+                {axis: "To Be A Smartphone", value: 0.38}
+            ], [//Nokia Smartphone
+                {axis: "Battery Life", value: 0.26},
+                {axis: "Brand", value: 0.10},
+                {axis: "Contract Cost", value: 0.30},
+                {axis: "Design And Quality", value: 0.14},
+                {axis: "Have Internet Connectivity", value: 0.22},
+                {axis: "Large Screen", value: 0.04},
+                {axis: "Price Of Device", value: 0.41},
+                {axis: "To Be A Smartphone", value: 0.30}
+            ]
+        ];
+        //////////////////////////////////////////////////////////////
+        //////////////////// Draw the Chart //////////////////////////
+        //////////////////////////////////////////////////////////////
+
+        var color = d3.scale.ordinal()
+            .range(["#EDC951", "#CC333F", "#00A0B0"]);
+
+        var radarChartOptions = {
+            w: width,
+            h: height,
+            margin: margin,
+            maxValue: 0.5,
+            levels: 5,
+            roundStrokes: true,
+            color: color
+        };
+        //Call function to draw the Radar chart
+        RadarChart(".chap1-radar-chart", data, radarChartOptions);
+    })()
+</script>
+
+</body>
+</html>
+
+
+

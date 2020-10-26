@@ -52,6 +52,7 @@ The manifest file must contain the following fields:
 | title       | string | Report title                                                 |
 | description | string | Extended description                                         |
 | version     | string | ZipReport engine version (currently ignored)                 |
+|useJSEvent| string| If "true", will automatically use jsEvent with ZipReport-cli/server|
 | params      | list   | List of mandatory parameter names. When rendering the report, will generate an exception if the passed parameter keys does not match this list |
 
 Additionally, the manifest **can** contain other fields relevant to the application, they are just ignored by ZipReport.

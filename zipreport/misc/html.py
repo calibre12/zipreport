@@ -12,6 +12,7 @@ def html_tag(name, params: dict, content=None):
     :param content:
     :return: html tag built from the parameters
     """
+
     properties = []
     for k, v in params.items():
         if v is not None:
